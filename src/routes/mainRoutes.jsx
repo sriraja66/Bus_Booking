@@ -6,6 +6,9 @@ import Features from "../components/Features";
 import LoginPage from "../pages/LoginPage";
 import SignUpPage from "../pages/SignUpPage";
 import UploaderSignUpPage from "../pages/UploaderSignUpPage";
+import AddBus from "../pages/AddBus";
+import BusList from "../pages/BusList";
+import SeatBookingPage from "../pages/SeatBookingPage";
 
 const mainRoutes = {
     path: "/",
@@ -32,6 +35,18 @@ const mainRoutes = {
         {
             path: "uploader-signup",
             element: <UploaderSignUpPage />,
+        },
+        {
+            path: "add-bus",
+            element: <AddBus />,
+        },
+        {
+            path: "buses",
+            element: <BusList />,
+        },
+        {
+            path: "seat-booking",
+            element: <SeatBookingPage />,
         },
     ],
 };
