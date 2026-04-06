@@ -7,8 +7,15 @@ const AddBus = () => {
     const [formData, setFormData] = useState({
         busName: '',
         busNumber: '',
-        busType: '',
-        totalSeats: '',
+        deckType: '',
+        busTypes: [],
+        sleeperSeats: '',
+        seaterSeats: '',
+        upperSleeperSeats: '',
+        lowerDeckTypes: [],
+        lowerSleeperSeats: '',
+        lowerSeaterSeats: '',
+        acType: '',
         startingLocation: '',
         destination: '',
         boardingPoints: '',
@@ -51,12 +58,48 @@ const AddBus = () => {
         }
     };
 
+    const handleBusTypeToggle = (type) => {
+        setFormData((prev) => {
+            const types = prev.busTypes.includes(type)
+                ? prev.busTypes.filter(t => t !== type)
+                : [...prev.busTypes, type];
+            return { ...prev, busTypes: types };
+        });
+        if (errors.busTypes) {
+            setErrors(prev => ({ ...prev, busTypes: '' }));
+        }
+    };
+
+    const handleLowerDeckTypeToggle = (type) => {
+        setFormData((prev) => {
+            const types = prev.lowerDeckTypes.includes(type)
+                ? prev.lowerDeckTypes.filter(t => t !== type)
+                : [...prev.lowerDeckTypes, type];
+            return { ...prev, lowerDeckTypes: types };
+        });
+        if (errors.lowerDeckTypes) {
+            setErrors(prev => ({ ...prev, lowerDeckTypes: '' }));
+        }
+    };
+
     const validate = () => {
         let newErrors = {};
         if (!formData.busName) newErrors.busName = 'Bus Name is required';
         if (!formData.busNumber) newErrors.busNumber = 'Bus Number is required';
-        if (!formData.busType) newErrors.busType = 'Please select a bus type';
-        if (!formData.totalSeats || formData.totalSeats <= 0) newErrors.totalSeats = 'Valid seat count is required';
+        if (!formData.deckType) newErrors.deckType = 'Please select a deck type';
+        
+        if (formData.deckType === 'Single Deck') {
+            if (!formData.busTypes || formData.busTypes.length === 0) newErrors.busTypes = 'Please select at least one bus type';
+            if (formData.busTypes.includes('Sleeper') && (!formData.sleeperSeats || formData.sleeperSeats <= 0)) newErrors.sleeperSeats = 'Valid seat count required';
+            if (formData.busTypes.includes('Seater') && (!formData.seaterSeats || formData.seaterSeats <= 0)) newErrors.seaterSeats = 'Valid seat count required';
+        } else if (formData.deckType === 'Double Deck') {
+            if (!formData.upperSleeperSeats || formData.upperSleeperSeats <= 0) newErrors.upperSleeperSeats = 'Valid seat count required';
+            if (!formData.lowerDeckTypes || formData.lowerDeckTypes.length === 0) newErrors.lowerDeckTypes = 'Select at least one lower deck type';
+            if (formData.lowerDeckTypes.includes('Sleeper') && (!formData.lowerSleeperSeats || formData.lowerSleeperSeats <= 0)) newErrors.lowerSleeperSeats = 'Valid seat count required';
+            if (formData.lowerDeckTypes.includes('Seater') && (!formData.lowerSeaterSeats || formData.lowerSeaterSeats <= 0)) newErrors.lowerSeaterSeats = 'Valid seat count required';
+        }
+
+        if (!formData.acType) newErrors.acType = 'Please select AC type';
         if (!formData.startingLocation) newErrors.startingLocation = 'Starting location is required';
         if (!formData.destination) newErrors.destination = 'Destination is required';
         if (!formData.boardingPoints) newErrors.boardingPoints = 'Boarding points are required';
@@ -127,36 +170,202 @@ const AddBus = () => {
                     {errors.busNumber && <span className="error-text">{errors.busNumber}</span>}
                 </div>
 
-                <div className="form-group">
-                    <label htmlFor="busType">Bus Type</label>
-                    <select
-                        id="busType"
-                        name="busType"
-                        value={formData.busType}
-                        onChange={handleChange}
-                        className={errors.busType ? 'error' : ''}
-                    >
-                        <option value="">Select Type</option>
-                        <option value="AC">AC</option>
-                        <option value="Non-AC">Non-AC</option>
-                        <option value="Sleeper">Sleeper</option>
-                        <option value="Seater">Seater</option>
-                    </select>
-                    {errors.busType && <span className="error-text">{errors.busType}</span>}
+                <div className="form-group full-width">
+                    <label>Deck Type</label>
+                    <div className="radio-group">
+                        <label>
+                            <input
+                                type="radio"
+                                name="deckType"
+                                value="Single Deck"
+                                checked={formData.deckType === 'Single Deck'}
+                                onChange={handleChange}
+                            />
+                            Single Deck
+                        </label>
+                        <label>
+                            <input
+                                type="radio"
+                                name="deckType"
+                                value="Double Deck"
+                                checked={formData.deckType === 'Double Deck'}
+                                onChange={handleChange}
+                            />
+                            Double Deck
+                        </label>
+                    </div>
+                    {errors.deckType && <span className="error-text">{errors.deckType}</span>}
                 </div>
 
-                <div className="form-group">
-                    <label htmlFor="totalSeats">Total Seats</label>
-                    <input
-                        type="number"
-                        id="totalSeats"
-                        name="totalSeats"
-                        value={formData.totalSeats}
-                        onChange={handleChange}
-                        placeholder="e.g. 40"
-                        className={errors.totalSeats ? 'error' : ''}
-                    />
-                    {errors.totalSeats && <span className="error-text">{errors.totalSeats}</span>}
+                {formData.deckType === 'Single Deck' && (
+                    <>
+                        <div className="form-group full-width">
+                            <label>Seat Type (Multi-selection)</label>
+                            <div className="checkbox-group">
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        name="busTypes"
+                                        value="Sleeper"
+                                        checked={formData.busTypes.includes('Sleeper')}
+                                        onChange={() => handleBusTypeToggle('Sleeper')}
+                                    />
+                                    Sleeper
+                                </label>
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        name="busTypes"
+                                        value="Seater"
+                                        checked={formData.busTypes.includes('Seater')}
+                                        onChange={() => handleBusTypeToggle('Seater')}
+                                    />
+                                    Seater
+                                </label>
+                            </div>
+                            {errors.busTypes && <span className="error-text">{errors.busTypes}</span>}
+                        </div>
+
+                        {formData.busTypes.includes('Sleeper') && (
+                            <div className="form-group">
+                                <label htmlFor="sleeperSeats">Number of Sleeper Seats</label>
+                                <input
+                                    type="number"
+                                    id="sleeperSeats"
+                                    name="sleeperSeats"
+                                    value={formData.sleeperSeats}
+                                    onChange={handleChange}
+                                    placeholder="e.g. 20"
+                                    className={errors.sleeperSeats ? 'error' : ''}
+                                />
+                                {errors.sleeperSeats && <span className="error-text">{errors.sleeperSeats}</span>}
+                            </div>
+                        )}
+
+                        {formData.busTypes.includes('Seater') && (
+                            <div className="form-group">
+                                <label htmlFor="seaterSeats">Number of Seater Seats</label>
+                                <input
+                                    type="number"
+                                    id="seaterSeats"
+                                    name="seaterSeats"
+                                    value={formData.seaterSeats}
+                                    onChange={handleChange}
+                                    placeholder="e.g. 40"
+                                    className={errors.seaterSeats ? 'error' : ''}
+                                />
+                                {errors.seaterSeats && <span className="error-text">{errors.seaterSeats}</span>}
+                            </div>
+                        )}
+                    </>
+                )}
+
+                {formData.deckType === 'Double Deck' && (
+                    <>
+                        <div className="form-group full-width" style={{ marginTop: '0.5rem', padding: '1rem', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.05rem', color: '#374151' }}>Upper Deck (Sleeper Only)</h3>
+                            <div className="form-group">
+                                <label htmlFor="upperSleeperSeats">Number of Upper Deck Sleeper Seats</label>
+                                <input
+                                    type="number"
+                                    id="upperSleeperSeats"
+                                    name="upperSleeperSeats"
+                                    value={formData.upperSleeperSeats}
+                                    onChange={handleChange}
+                                    placeholder="e.g. 15"
+                                    className={errors.upperSleeperSeats ? 'error' : ''}
+                                />
+                                {errors.upperSleeperSeats && <span className="error-text">{errors.upperSleeperSeats}</span>}
+                            </div>
+                        </div>
+
+                        <div className="form-group full-width" style={{ marginTop: '0.5rem', padding: '1rem', background: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+                            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.05rem', color: '#374151' }}>Lower Deck</h3>
+                            <div className="form-group full-width">
+                                <label>Lower Deck Type (Multi-selection)</label>
+                                <div className="checkbox-group">
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.lowerDeckTypes.includes('Sleeper')}
+                                            onChange={() => handleLowerDeckTypeToggle('Sleeper')}
+                                        />
+                                        Sleeper
+                                    </label>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.lowerDeckTypes.includes('Seater')}
+                                            onChange={() => handleLowerDeckTypeToggle('Seater')}
+                                        />
+                                        Seater
+                                    </label>
+                                </div>
+                                {errors.lowerDeckTypes && <span className="error-text">{errors.lowerDeckTypes}</span>}
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                                {formData.lowerDeckTypes.includes('Sleeper') && (
+                                    <div className="form-group">
+                                        <label htmlFor="lowerSleeperSeats">Lower Deck Sleeper Seats</label>
+                                        <input
+                                            type="number"
+                                            id="lowerSleeperSeats"
+                                            name="lowerSleeperSeats"
+                                            value={formData.lowerSleeperSeats}
+                                            onChange={handleChange}
+                                            placeholder="e.g. 10"
+                                            className={errors.lowerSleeperSeats ? 'error' : ''}
+                                        />
+                                        {errors.lowerSleeperSeats && <span className="error-text">{errors.lowerSleeperSeats}</span>}
+                                    </div>
+                                )}
+
+                                {formData.lowerDeckTypes.includes('Seater') && (
+                                    <div className="form-group">
+                                        <label htmlFor="lowerSeaterSeats">Lower Deck Seater Seats</label>
+                                        <input
+                                            type="number"
+                                            id="lowerSeaterSeats"
+                                            name="lowerSeaterSeats"
+                                            value={formData.lowerSeaterSeats}
+                                            onChange={handleChange}
+                                            placeholder="e.g. 20"
+                                            className={errors.lowerSeaterSeats ? 'error' : ''}
+                                        />
+                                        {errors.lowerSeaterSeats && <span className="error-text">{errors.lowerSeaterSeats}</span>}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                <div className="form-group full-width">
+                    <label>AC Type (Single Selection)</label>
+                    <div className="radio-group">
+                        <label>
+                            <input
+                                type="radio"
+                                name="acType"
+                                value="AC"
+                                checked={formData.acType === 'AC'}
+                                onChange={handleChange}
+                            />
+                            AC
+                        </label>
+                        <label>
+                            <input
+                                type="radio"
+                                name="acType"
+                                value="Non-AC"
+                                checked={formData.acType === 'Non-AC'}
+                                onChange={handleChange}
+                            />
+                            Non-AC
+                        </label>
+                    </div>
+                    {errors.acType && <span className="error-text">{errors.acType}</span>}
                 </div>
 
                 <div className="form-group">

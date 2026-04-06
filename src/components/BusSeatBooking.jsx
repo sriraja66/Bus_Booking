@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './BusSeatBooking.css';
+import '../pages/BusSeatBooking.css';
 
 const BusSeatBooking = ({ bus, onBookingUpdate }) => {
   // Initialize seats based on bus.totalSeats

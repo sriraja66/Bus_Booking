@@ -66,3 +66,70 @@
     border-radius: 5px;
     cursor: pointer;
 }
+
+/* Uploader Configuration Styles */
+
+.uploader-config {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin-bottom: 30px;
+    border-left: 5px solid #2ecc71;
+}
+
+.uploader-config h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #2c3e50;
+    font-size: 1.2rem;
+}
+
+.config-group {
+    margin-bottom: 15px;
+}
+
+.config-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #34495e;
+}
+
+.checkbox-group,
+.radio-group {
+    display: flex;
+    gap: 20px;
+}
+
+.checkbox-group label,
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: #000;
+}
+
+/* INPUT FIELD FIX */
+
+.config-input {
+    width: 100%;
+    max-width: 300px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    color: #000;          /* text color black */
+    background-color: #fff;
+}
+
+.config-input::placeholder {
+    color: #ff0000;          /* placeholder visible */
+}
+
+.config-input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}

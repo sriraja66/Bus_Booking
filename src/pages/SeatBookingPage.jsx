@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import BusSeatBooking from '../components/BusSeatBooking';
-import './SeatBookingPage.css';
+import "../pages/SeatBookingPage.css";
 
 const SeatBookingPage = () => {
     const location = useLocation();
@@ -10,6 +10,21 @@ const SeatBookingPage = () => {
 
     // Local state for the bus to handle immediate UI updates
     const [currentBus, setCurrentBus] = useState(bus);
+
+    // States for Bus Uploader Configuration
+    const [busTypes, setBusTypes] = useState([]);
+    const [acType, setAcType] = useState('');
+    const [seatCounts, setSeatCounts] = useState({ Sleeper: '', Seater: '' });
+
+    const handleBusTypeToggle = (type) => {
+        setBusTypes(prev => 
+            prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+        );
+    };
+
+    const handleSeatCountChange = (type, value) => {
+        setSeatCounts(prev => ({ ...prev, [type]: value }));
+    };
 
     if (!bus) {
         return (
@@ -20,27 +35,37 @@ const SeatBookingPage = () => {
         );
     }
 
-    const handleBookingUpdate = (newBookedSeats) => {
-        // 1. Get all buses from localStorage
-        const allBuses = JSON.parse(localStorage.getItem('buses') || '[]');
+    const handleBookingUpdate = async (newBookedSeats) => {
+        try {
+            const bookingPayload = {
+                userId: "60b8d29b2b5a1b3fc4d7d3d0", // Placeholder user ID
+                busId: currentBus._id || currentBus.id, 
+                selectedSeats: newBookedSeats,
+                from: currentBus.startingLocation,
+                to: currentBus.destination
+            };
 
-        // 2. Update the specific bus with new booked seats
-        const updatedBuses = allBuses.map((b) => {
-            if (b.id === bus.id) {
-                const updatedBookedSeats = [...(b.bookedSeats || []), ...newBookedSeats];
-                return { ...b, bookedSeats: updatedBookedSeats };
+            const response = await fetch("http://localhost:5000/api/bookings", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(bookingPayload)
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to save booking");
             }
-            return b;
-        });
 
-        // 3. Save back to localStorage
-        localStorage.setItem('buses', JSON.stringify(updatedBuses));
-
-        // 4. Update local state
-        const updatedBus = updatedBuses.find(b => b.id === bus.id);
-        setCurrentBus(updatedBus);
-        
-        alert(`Booking confirmed for seats: ${newBookedSeats.join(', ')}`);
+            // Update local state to reflect new booking safely
+            const updatedBookedSeats = [...(currentBus.bookedSeats || []), ...newBookedSeats];
+            setCurrentBus({ ...currentBus, bookedSeats: updatedBookedSeats });
+            
+            alert(`Booking confirmed for seats: ${newBookedSeats.join(', ')}`);
+        } catch (err) {
+            console.error("Booking Error:", err);
+            alert("There was an error processing your booking.");
+        }
     };
 
     return (
@@ -54,6 +79,81 @@ const SeatBookingPage = () => {
                         <p><strong>Route:</strong> {currentBus.startingLocation} to {currentBus.destination}</p>
                         <p><strong>Time:</strong> {currentBus.departureTime} - {currentBus.arrivalTime}</p>
                         <p><strong>Price:</strong> ₹{currentBus.ticketPrice}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="uploader-config">
+                <h3>Bus Uploader Configuration</h3>
+                <div className="config-group">
+                    <label className="config-label">Bus Type (Multi-selection):</label>
+                    <div className="checkbox-group">
+                        <label>
+                            <input 
+                                type="checkbox" 
+                                checked={busTypes.includes('Sleeper')} 
+                                onChange={() => handleBusTypeToggle('Sleeper')} 
+                            /> Sleeper
+                        </label>
+                        <label>
+                            <input 
+                                type="checkbox" 
+                                checked={busTypes.includes('Seater')} 
+                                onChange={() => handleBusTypeToggle('Seater')} 
+                            /> Seater
+                        </label>
+                    </div>
+                </div>
+                
+                {busTypes.includes('Sleeper') && (
+                    <div className="config-group">
+                        <label className="config-label">Number of Sleeper Seats:</label>
+                        <input 
+                            className="config-input"
+                            type="number" 
+                            value={seatCounts.Sleeper} 
+                            onChange={(e) => handleSeatCountChange('Sleeper', e.target.value)}
+                            min="0"
+                            placeholder="Enter sleeper seats count"
+                        />
+                    </div>
+                )}
+
+                {busTypes.includes('Seater') && (
+                    <div className="config-group">
+                        <label className="config-label">Number of Seater Seats:</label>
+                        <input 
+                            className="config-input"
+                            type="number" 
+                            value={seatCounts.Seater} 
+                            onChange={(e) => handleSeatCountChange('Seater', e.target.value)}
+                            min="0"
+                            placeholder="Enter seater seats count"
+                        />
+                    </div>
+                )}
+
+                <div className="config-group">
+                    <label className="config-label">AC Type (Single Selection):</label>
+                    <div className="radio-group">
+                        <label>
+                            <input 
+                                type="radio" 
+                                name="acType"
+                                value="AC" 
+                                checked={acType === 'AC'} 
+                                onChange={(e) => setAcType(e.target.value)} 
+                            /> AC
+                        </label>
+                        <label>
+                            <input 
+                                type="radio" 
+                                name="acType"
+                                value="Non-AC" 
+                                checked={acType === 'Non-AC'} 
+                                onChange={(e) => setAcType(e.target.value)} 
+                            /> Non-AC
+                        </label>
                     </div>
                 </div>
             </div>

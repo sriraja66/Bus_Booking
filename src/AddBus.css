@@ -47,6 +47,11 @@
   font-size: 1rem;
   transition: all 0.2s ease;
   background-color: #f9fafb;
+  color: #000; /* FIX: text color black */
+}
+
+.form-group input::placeholder {
+  color: #6b7280;
 }
 
 .form-group input:focus,
@@ -55,6 +60,7 @@
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   background-color: #ffffff;
+  color: #000;
 }
 
 .form-group input.error {
@@ -93,8 +99,31 @@
   .bus-form {
     grid-template-columns: 1fr;
   }
-  
+
   .form-group.full-width {
     grid-column: span 1;
   }
+}
+
+/* Fix for Multi-Selection Checkbox & Radio Groups */
+.checkbox-group, .radio-group {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.checkbox-group label, .radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #4b5563;
+}
+
+.checkbox-group input[type="checkbox"],
+.radio-group input[type="radio"] {
+    width: auto;
+    margin: 0;
 }

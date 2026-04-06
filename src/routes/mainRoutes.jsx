@@ -9,46 +9,51 @@ import UploaderSignUpPage from "../pages/UploaderSignUpPage";
 import AddBus from "../pages/AddBus";
 import BusList from "../pages/BusList";
 import SeatBookingPage from "../pages/SeatBookingPage";
+import SearchResults from "../pages/SearchResults";
 
 const mainRoutes = {
-    path: "/",
-    element: <MainLayout />,
-    children: [
-        {
-            index: true,
-            element: (
-                <>
-                    <Header />
-                    <SearchBox />
-                    <Features />
-                </>
-            ),
-        },
-        {
-            path: "login",
-            element: <LoginPage />,
-        },
-        {
-            path: "signup",
-            element: <SignUpPage />,
-        },
-        {
-            path: "uploader-signup",
-            element: <UploaderSignUpPage />,
-        },
-        {
-            path: "add-bus",
-            element: <AddBus />,
-        },
-        {
-            path: "buses",
-            element: <BusList />,
-        },
-        {
-            path: "seat-booking",
-            element: <SeatBookingPage />,
-        },
-    ],
+  path: "/",
+  element: <MainLayout />,
+  children: [
+    {
+      index: true,
+      element: (
+        <>
+          <Header />
+          <SearchBox />
+          <Features />
+        </>
+      ),
+    },
+    {
+      path: "login",
+      element: <LoginPage />,
+    },
+    {
+      path: "signup",
+      element: <SignUpPage />,
+    },
+    {
+      path: "uploader-signup",
+      element: <UploaderSignUpPage />,
+    },
+    {
+      path: "add-bus",
+      element: <AddBus />,
+    },
+    {
+      path: "buses",
+      element: <BusList />,
+    },
+    {
+      path: "seat-booking",
+      element: <SeatBookingPage />,
+    },
+    {
+      path: "search-results",
+      element: <SearchResults />,
+    },
+  ],
 };
 
 export default mainRoutes;
