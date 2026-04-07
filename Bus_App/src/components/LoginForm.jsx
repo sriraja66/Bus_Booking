@@ -1,16 +1,40 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { apiService } from "../services/apiService";
 
 function LoginForm() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [userType, setUserType] = useState("user"); // "user" or "uploader"
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
-        console.log(userType + " Logged In");
-        console.log("Email:", email);
-        console.log("Password:", password);
+        setError("");
+        setLoading(true);
+
+        try {
+            const data = await apiService.login({ email, password });
+            
+            // 1. Store the token and user info in localStorage
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("user", JSON.stringify(data.user));
+
+            console.log("Login successful:", data.user.username);
+            
+            // 2. Redirect based on user type (simplified for now)
+            if (userType === 'uploader') {
+                navigate('/add-bus');
+            } else {
+                navigate('/');
+            }
+        } catch (err) {
+            setError(err.message || "Invalid email or password");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -33,6 +57,8 @@ function LoginForm() {
                     Uploader
                 </button>
             </div>
+
+            {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
 
             <form onSubmit={handleLogin}>
                 <div className="input-group" style={{ marginBottom: "15px" }}>
@@ -57,8 +83,13 @@ function LoginForm() {
                     />
                 </div>
 
-                <button type="submit" className="search-btn" style={{ width: "100%" }}>
-                    Login
+                <button 
+                    type="submit" 
+                    className="search-btn" 
+                    style={{ width: "100%" }}
+                    disabled={loading}
+                >
+                    {loading ? "Logging in..." : "Login"}
                 </button>
             </form>
 

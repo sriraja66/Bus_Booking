@@ -11,11 +11,11 @@ export const createBus = async (req, res) => {
     const newBus = await busService.createBus(busData);
     
 
-    res.send(newBus);
+    res.status(201).json(newBus);
 
   } catch (error) {
 
-    res.send("Error creating bus");
+    res.status(500).json({ message: "Error creating bus", error: error.message });
 
   }
 
@@ -49,11 +49,11 @@ export const getAllBuses = async (req, res) => {
 
     const buses = await busService.getAllBuses();
 
-    res.send(buses);
+    res.json(buses);
 
   } catch (error) {
 
-    res.send("Error getting buses");
+    res.status(500).json({ message: "Error getting buses", error: error.message });
 
   }
 
@@ -71,15 +71,14 @@ export const getBusById = async (req, res) => {
     const bus = await busService.getBusById(id);
 
     if (!bus) {
-      res.send("Bus not found");
-      return;
+      return res.status(404).json({ message: "Bus not found" });
     }
 
-    res.send(bus);
+    res.json(bus);
 
   } catch (error) {
 
-    res.send("Error getting bus");
+    res.status(500).json({ message: "Error getting bus", error: error.message });
 
   }
 
@@ -99,15 +98,14 @@ export const updateBus = async (req, res) => {
     const updatedBus = await busService.updateBus(id, data);
 
     if (!updatedBus) {
-      res.send("Bus not found");
-      return;
+      return res.status(404).json({ message: "Bus not found" });
     }
 
-    res.send(updatedBus);
+    res.json(updatedBus);
 
   } catch (error) {
 
-    res.send("Error updating bus");
+    res.status(500).json({ message: "Error updating bus", error: error.message });
 
   }
 
@@ -125,15 +123,14 @@ export const deleteBus = async (req, res) => {
     const deletedBus = await busService.deleteBus(id);
 
     if (!deletedBus) {
-      res.send("Bus not found");
-      return;
+      return res.status(404).json({ message: "Bus not found" });
     }
 
-    res.send("Bus deleted");
+    res.json({ message: "Bus deleted successfully" });
 
   } catch (error) {
 
-    res.send("Error deleting bus");
+    res.status(500).json({ message: "Error deleting bus", error: error.message });
 
   }
 

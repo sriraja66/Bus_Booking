@@ -1,26 +1,44 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { apiService } from "../services/apiService";
 
 function SignUpForm() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
-    const handleSignUp = (e) => {
+    const handleSignUp = async (e) => {
         e.preventDefault();
+        setError("");
+
         if (password !== confirmPassword) {
-            alert("Passwords do not match!");
+            setError("Passwords do not match!");
             return;
         }
-        console.log("Signed Up");
-        console.log("Name:", name);
-        console.log("Email:", email);
+
+        setLoading(true);
+        try {
+            // Include role: 'user' for regular passenger signup
+            await apiService.register({ username: name, email, password, role: 'user' });
+            
+            alert("Registration successful! Please login.");
+            navigate("/login");
+        } catch (err) {
+            setError(err.message || "Registration failed. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <div className="card" style={{ maxWidth: "450px", margin: "20px auto", padding: "30px" }}>
             <h2>Create Account</h2>
+
+            {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
 
             <form onSubmit={handleSignUp}>
                 <div className="input-group" style={{ marginBottom: "15px" }}>
@@ -67,8 +85,13 @@ function SignUpForm() {
                     />
                 </div>
 
-                <button type="submit" className="search-btn" style={{ width: "100%", backgroundColor: "#28a745" }}>
-                    Sign Up
+                <button 
+                    type="submit" 
+                    className="search-btn" 
+                    style={{ width: "100%", backgroundColor: "#28a745" }}
+                    disabled={loading}
+                >
+                    {loading ? "Signing up..." : "Sign Up"}
                 </button>
             </form>
 

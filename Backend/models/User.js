@@ -15,6 +15,11 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true
+  },
+  role: {
+    type: String,
+    enum: ['user', 'uploader'],
+    default: 'user'
   }
 }, { timestamps: true }); // Automatically adds createdAt and updatedAt fields
 

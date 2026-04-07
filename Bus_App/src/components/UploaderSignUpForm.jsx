@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { apiService } from "../services/apiService";
 
 function UploaderSignUpForm() {
     const [formData, setFormData] = useState({
@@ -9,29 +10,51 @@ function UploaderSignUpForm() {
         password: "",
         confirmPassword: "",
     });
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleSignUp = (e) => {
+    const handleSignUp = async (e) => {
         e.preventDefault();
+        setError("");
+
         if (formData.password !== formData.confirmPassword) {
-            alert("Passwords do not match!");
+            setError("Passwords do not match!");
             return;
         }
-        console.log("Bus Uploader Signed Up");
-        console.log("Uploader Data:", formData);
+
+        setLoading(true);
+        try {
+            await apiService.register({ 
+                username: formData.companyName, 
+                email: formData.email, 
+                password: formData.password,
+                role: 'uploader'
+            });
+            
+            alert("Uploader registration successful! Please login.");
+            navigate("/login");
+        } catch (err) {
+            setError(err.message || "Registration failed.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <div className="card" style={{ maxWidth: "500px", margin: "20px auto", padding: "30px" }}>
-            <h2>Bus Uploader Sign Up</h2>
+            <h2>Bus Partner Sign Up</h2>
+
+            {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
 
             <form onSubmit={handleSignUp}>
                 <div className="input-group" style={{ marginBottom: "15px" }}>
-                    <label>Company Name</label>
+                    <label>Company/Bus Name</label>
                     <input
                         type="text"
                         name="companyName"
@@ -55,14 +78,13 @@ function UploaderSignUpForm() {
                 </div>
 
                 <div className="input-group" style={{ marginBottom: "15px" }}>
-                    <label>Contact Number</label>
+                    <label>Contact Number (Optional)</label>
                     <input
                         type="tel"
                         name="contactNumber"
                         placeholder="Enter contact number"
                         value={formData.contactNumber}
                         onChange={handleChange}
-                        required
                     />
                 </div>
 
@@ -90,8 +112,13 @@ function UploaderSignUpForm() {
                     />
                 </div>
 
-                <button type="submit" className="search-btn" style={{ width: "100%", backgroundColor: "#3498db" }}>
-                    Create Account
+                <button 
+                    type="submit" 
+                    className="search-btn" 
+                    style={{ width: "100%", backgroundColor: "#3498db" }}
+                    disabled={loading}
+                >
+                    {loading ? "Creating partner account..." : "Join as Service Provider"}
                 </button>
             </form>
 

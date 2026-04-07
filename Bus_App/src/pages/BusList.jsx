@@ -1,14 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../BusList.css';
+import { apiService } from '../services/apiService';
 
 const BusList = () => {
     const [buses, setBuses] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const storedBuses = JSON.parse(localStorage.getItem('buses') || '[]');
-        setBuses(storedBuses);
+        const fetchBusesData = async () => {
+            try {
+                const data = await apiService.getAllBuses();
+                setBuses(data);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchBusesData();
     }, []);
 
     return (
@@ -20,7 +32,10 @@ const BusList = () => {
                 </button>
             </div>
 
-            {buses.length === 0 ? (
+            {loading && <p>Loading buses...</p>}
+            {error && <p style={{ color: 'red' }}>Error: {error}</p>}
+            
+            {!loading && !error && buses.length === 0 ? (
                 <div className="no-buses">
                     <p>No buses added yet.</p>
                     <button onClick={() => navigate('/add-bus')}>Start by adding a bus</button>
@@ -28,14 +43,14 @@ const BusList = () => {
             ) : (
                 <div className="bus-grid">
                     {buses.map((bus) => (
-                        <div key={bus.id} className="bus-card">
+                        <div key={bus._id || bus.id} className="bus-card">
                             <div className="bus-image-container">
                                 {bus.imagePreview ? (
                                     <img src={bus.imagePreview} alt={bus.busName} />
                                 ) : (
                                     <div className="no-image">No Image</div>
                                 )}
-                                <span className="bus-type-badge">{bus.busType}</span>
+                                <span className="bus-type-badge">{bus.acType}</span>
                             </div>
 
                             <div className="bus-details">
@@ -58,12 +73,8 @@ const BusList = () => {
                                 </div>
 
                                 <div className="extra-info">
-                                    <span>💺 {bus.totalSeats} Seats</span>
+                                    <span>💺 {bus.seaterSeats + bus.sleeperSeats} Seats</span>
                                     <span className="price">₹{bus.ticketPrice}</span>
-                                </div>
-
-                                <div className="boarding">
-                                    <strong>Boarding:</strong> {bus.boardingPoints}
                                 </div>
 
                                 <button 

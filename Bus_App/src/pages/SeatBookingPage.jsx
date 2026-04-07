@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import BusSeatBooking from '../components/BusSeatBooking';
 import "../pages/SeatBookingPage.css";
+import { apiService } from '../services/apiService';
 
 const SeatBookingPage = () => {
     const location = useLocation();
@@ -37,25 +38,22 @@ const SeatBookingPage = () => {
 
     const handleBookingUpdate = async (newBookedSeats) => {
         try {
+            // Verify user is logged in
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert("Please login to book a seat!");
+                navigate('/login');
+                return;
+            }
+
             const bookingPayload = {
-                userId: "60b8d29b2b5a1b3fc4d7d3d0", // Placeholder user ID
                 busId: currentBus._id || currentBus.id, 
                 selectedSeats: newBookedSeats,
                 from: currentBus.startingLocation,
                 to: currentBus.destination
             };
 
-            const response = await fetch("http://localhost:5000/api/bookings", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(bookingPayload)
-            });
-
-            if (!response.ok) {
-                throw new Error("Failed to save booking");
-            }
+            await apiService.createBooking(bookingPayload);
 
             // Update local state to reflect new booking safely
             const updatedBookedSeats = [...(currentBus.bookedSeats || []), ...newBookedSeats];
@@ -64,7 +62,7 @@ const SeatBookingPage = () => {
             alert(`Booking confirmed for seats: ${newBookedSeats.join(', ')}`);
         } catch (err) {
             console.error("Booking Error:", err);
-            alert("There was an error processing your booking.");
+            alert(err.message || "There was an error processing your booking.");
         }
     };
 

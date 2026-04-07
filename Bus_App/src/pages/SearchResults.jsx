@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { apiService } from '../services/apiService';
 // import './SearchResults.css'; // Optional: Create a CSS file for styling
 
 const SearchResults = () => {
@@ -16,18 +17,11 @@ const SearchResults = () => {
   const date = queryParams.get('date');
 
   useEffect(() => {
-    const fetchBuses = async () => {
+    const fetchBusesData = async () => {
       setLoading(true);
       setError(null);
       try {
-        const url = `http://localhost:3000/api/buses/search?startingLocation=${encodeURIComponent(fromCity)}&destination=${encodeURIComponent(toCity)}`;
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch buses');
-        }
-
-        const data = await response.json();
+        const data = await apiService.searchBuses(fromCity, toCity);
         setBuses(data);
       } catch (err) {
         setError(err.message);
@@ -37,7 +31,7 @@ const SearchResults = () => {
     };
 
     if (fromCity && toCity) {
-      fetchBuses();
+      fetchBusesData();
     } else {
       setLoading(false);
     }

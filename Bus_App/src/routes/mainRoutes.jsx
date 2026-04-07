@@ -10,6 +10,7 @@ import AddBus from "../pages/AddBus";
 import BusList from "../pages/BusList";
 import SeatBookingPage from "../pages/SeatBookingPage";
 import SearchResults from "../pages/SearchResults";
+import MyBookings from "../pages/MyBookings";
 
 const mainRoutes = {
   path: "/",
@@ -52,6 +53,10 @@ const mainRoutes = {
     {
       path: "search-results",
       element: <SearchResults />,
+    },
+    {
+      path: "my-bookings",
+      element: <MyBookings />,
     },
   ],
 };

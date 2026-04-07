@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../AddBus.css';
+import { apiService } from '../services/apiService';
 
 const AddBus = () => {
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+    const [submitError, setSubmitError] = useState("");
     const [formData, setFormData] = useState({
         busName: '',
         busNumber: '',
@@ -17,11 +20,11 @@ const AddBus = () => {
         lowerSeaterSeats: '',
         acType: '',
         startingLocation: '',
-        destination: '',
+        endingLocation: '',
         boardingPoints: '',
         departureTime: '',
         arrivalTime: '',
-        ticketPrice: '',
+        price: '',
         busImage: null,
         imagePreview: ''
     });
@@ -101,40 +104,51 @@ const AddBus = () => {
 
         if (!formData.acType) newErrors.acType = 'Please select AC type';
         if (!formData.startingLocation) newErrors.startingLocation = 'Starting location is required';
-        if (!formData.destination) newErrors.destination = 'Destination is required';
+        if (!formData.endingLocation) newErrors.endingLocation = 'Destination is required';
         if (!formData.boardingPoints) newErrors.boardingPoints = 'Boarding points are required';
         if (!formData.departureTime) newErrors.departureTime = 'Departure time is required';
         if (!formData.arrivalTime) newErrors.arrivalTime = 'Arrival time is required';
-        if (!formData.ticketPrice || formData.ticketPrice <= 0) newErrors.ticketPrice = 'Valid ticket price is required';
+        if (!formData.price || formData.price <= 0) newErrors.price = 'Valid ticket price is required';
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitError("");
         if (validate()) {
-            // Get existing buses from localStorage
-            const existingBuses = JSON.parse(localStorage.getItem('buses') || '[]');
+            setLoading(true);
+            try {
+                // Map frontend fields to backend schema if necessary
+                // The backend schema currently has: busName, busNumber, deckType, acType, startingLocation, destination, ticketPrice
+                // Other fields can be added to the backend model or sent as-is if the model supports it
+                
+                const busData = {
+                    busName: formData.busName,
+                    busNumber: formData.busNumber,
+                    deckType: formData.deckType,
+                    acType: formData.acType,
+                    startingLocation: formData.startingLocation,
+                    destination: formData.endingLocation,
+                    ticketPrice: Number(formData.price),
+                    // Adding extra fields (backend model should be updated to support these)
+                    departureTime: formData.departureTime,
+                    arrivalTime: formData.arrivalTime,
+                    busTypes: formData.busTypes,
+                    sleeperSeats: Number(formData.sleeperSeats || 0),
+                    seaterSeats: Number(formData.seaterSeats || 0)
+                };
 
-            // Add new bus with a unique ID
-            const newBus = {
-                ...formData,
-                id: Date.now(),
-            };
-
-            const updatedBuses = [...existingBuses, newBus];
-
-            // Save back to localStorage
-            localStorage.setItem('buses', JSON.stringify(updatedBuses));
-
-            console.log('Bus Data Saved:', newBus);
-            alert('Bus Details Added Successfully!');
-
-            // Redirect to Bus List page
-            navigate('/buses');
-        } else {
-            console.log('Form validation failed');
+                await apiService.createBus(busData);
+                
+                alert('Bus Details Added Successfully!');
+                navigate('/buses');
+            } catch (err) {
+                setSubmitError(err.message || "Failed to add bus");
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -387,13 +401,13 @@ const AddBus = () => {
                     <input
                         type="text"
                         id="destination"
-                        name="destination"
-                        value={formData.destination}
+                        name="endingLocation"
+                        value={formData.endingLocation}
                         onChange={handleChange}
                         placeholder="Destination city"
-                        className={errors.destination ? 'error' : ''}
+                        className={errors.endingLocation ? 'error' : ''}
                     />
-                    {errors.destination && <span className="error-text">{errors.destination}</span>}
+                    {errors.endingLocation && <span className="error-text">{errors.endingLocation}</span>}
                 </div>
 
                 <div className="form-group full-width">
@@ -441,13 +455,13 @@ const AddBus = () => {
                     <input
                         type="number"
                         id="ticketPrice"
-                        name="ticketPrice"
-                        value={formData.ticketPrice}
+                        name="price"
+                        value={formData.price}
                         onChange={handleChange}
                         placeholder="Price per seat"
-                        className={errors.ticketPrice ? 'error' : ''}
+                        className={errors.price ? 'error' : ''}
                     />
-                    {errors.ticketPrice && <span className="error-text">{errors.ticketPrice}</span>}
+                    {errors.price && <span className="error-text">{errors.price}</span>}
                 </div>
 
                 <div className="form-group">

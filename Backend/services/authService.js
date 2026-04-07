@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import bcrypt from 'bcrypt';
 
 // Register a new user
 export const registerUser = async (userData) => {
@@ -9,14 +10,19 @@ export const registerUser = async (userData) => {
       throw new Error("User already exists with this email");
     }
 
-    // 2. Create a new user (Note: For beginners, we are saving the password as-is. In real apps, passwords should be hashed!)
+    // 2. Hash the password before saving (security best practice)
+    // saltRounds = 10 is standard for bcrypt
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
+
+    // 3. Create a new user with the hashed password
     const newUser = new User({
       username: userData.username,
       email: userData.email,
-      password: userData.password // Taking raw password for simplicity
+      password: hashedPassword
     });
 
-    // 3. Save the new user to the database
+    // 4. Save the new user to the database
     await newUser.save();
     return newUser;
   } catch (error) {
@@ -33,8 +39,9 @@ export const loginUser = async (email, password) => {
       throw new Error("User not found");
     }
 
-    // 2. Check if the password matches (comparing raw passwords for simplicity)
-    if (user.password !== password) {
+    // 2. Check if the password matches using bcrypt.compare()
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       throw new Error("Invalid password");
     }
 
