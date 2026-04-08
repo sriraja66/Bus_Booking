@@ -2,27 +2,25 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import busRoutes from "./routes/busRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 
-// Load environment variables
 dotenv.config();
-console.log("Loaded MONGO_URL:", process.env.MONGO_URL);
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5005;
 
-// Enable CORS
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
+// Fix for __dirname in ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// --- MIDDLEWARE ---
+// Enable Global CORS for all origins and methods
+app.use(cors());
 
 // Parse JSON
 app.use(express.json());
@@ -31,30 +29,36 @@ app.use(express.json());
 const connectDB = async () => {
   try {
     if (!process.env.MONGO_URL) {
-      throw new Error("MONGO_URL not found in .env file");
+      throw new Error("MONGO_URL not found in environment variables");
     }
 
     const conn = await mongoose.connect(process.env.MONGO_URL);
 
     console.log("MongoDB Connected:", conn.connection.host);
   } catch (error) {
-    console.error(`Error connecting to MongoDB: ${error.message}`);
+    console.error("MongoDB connection error:", error.message);
     process.exit(1);
   }
 };
-// Routes
+
+// --- API ROUTES ---
 app.use("/api/buses", busRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/bookings", bookingRoutes);
 
-// Test route
-app.get("/", (req, res) => {
-  res.send("Bus Booking Backend API is running!");
+// --- STATIC FILES & SPA ROUTING ---
+// Serve React static files from the built frontend
+app.use(express.static(path.join(__dirname, "../Bus_App/dist")));
+
+// Handle SPA routing - serve index.html for any non-API routes
+// Note: Using "*path" for Express 5 compatibility to avoid crash
+app.get("*path", (req, res) => {
+  res.sendFile(path.join(__dirname, "../Bus_App/dist", "index.html"));
 });
 
-// Start server after DB connection
+// Start server
 connectDB().then(() => {
   app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
   });
 });

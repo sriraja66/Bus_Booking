@@ -34,7 +34,7 @@ function UploaderSignUpForm() {
                 username: formData.companyName, 
                 email: formData.email, 
                 password: formData.password,
-                role: 'uploader'
+                role: 'busUploader'
             });
             
             alert("Uploader registration successful! Please login.");

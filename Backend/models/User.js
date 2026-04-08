@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'uploader'],
+    enum: ['user', 'busUploader'],
     default: 'user'
   }
 }, { timestamps: true }); // Automatically adds createdAt and updatedAt fields

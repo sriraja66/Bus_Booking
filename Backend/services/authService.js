@@ -19,7 +19,8 @@ export const registerUser = async (userData) => {
     const newUser = new User({
       username: userData.username,
       email: userData.email,
-      password: hashedPassword
+      password: hashedPassword,
+      role: userData.role || 'user'
     });
 
     // 4. Save the new user to the database

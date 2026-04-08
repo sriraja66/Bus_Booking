@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiService } from "../services/apiService";
+import { useAuth } from "../context/AuthContext";
 
 function LoginForm() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [userType, setUserType] = useState("user"); // "user" or "uploader"
+    const [loginRole, setLoginRole] = useState("user"); // "user" or "uploader" (DB roles)
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -16,49 +18,66 @@ function LoginForm() {
         setLoading(true);
 
         try {
-            const data = await apiService.login({ email, password });
+            // Map UI role to the DB-native role before sending to backend
+            const dbRole = loginRole === "busUploader" ? "uploader" : loginRole;
+            const data = await apiService.login({ email, password, role: dbRole });
             
-            // 1. Store the token and user info in localStorage
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
+            // Log in via AuthContext (stores user/token in storage and state)
+            login(data.user, data.token);
 
-            console.log("Login successful:", data.user.username);
+            console.log("Login successful:", data.user?.username || data.user?.name);
             
-            // 2. Redirect based on user type (simplified for now)
-            if (userType === 'uploader') {
-                navigate('/add-bus');
+            // Redirect based on the normalized role (AuthContext maps 'uploader' -> 'busUploader')
+            const normalizedRole = data.user.role === 'uploader' ? 'busUploader' : data.user.role;
+            if (normalizedRole === 'busUploader') {
+                navigate('/uploader/dashboard');
             } else {
-                navigate('/');
+                navigate('/dashboard');
             }
         } catch (err) {
-            setError(err.message || "Invalid email or password");
+            // The backend returns a 403 for role mismatches
+            setError(err.message || "Invalid credentials");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="card" style={{ maxWidth: "400px", margin: "20px auto", padding: "30px" }}>
-            <h2>{userType === "user" ? "User Login" : "Uploader Login"}</h2>
-
-            <div style={{ display: "flex", gap: "10px", marginBottom: "20px", justifyContent: "center" }}>
-                <button
-                    onClick={() => setUserType("user")}
-                    className={userType === "user" ? "search-btn" : "booking-btn"}
-                    style={{ flex: 1 }}
+        <div className="card" style={{ maxWidth: "450px", margin: "20px auto", padding: "30px" }}>
+            <h2 style={{ textAlign: 'center', marginBottom: '10px' }}>Login to continue</h2>
+            
+            <div className="role-selector" style={{ display: 'flex', gap: '10px', marginBottom: '25px', justifyContent: 'center' }}>
+                 <button
+                    type="button"
+                    onClick={() => setLoginRole("user")}
+                    className={loginRole === "user" ? "search-btn" : "booking-btn"}
+                    style={{ flex: 1, padding: '10px', fontSize: '14px' }}
                 >
-                    User
+                    Login as User
                 </button>
                 <button
-                    onClick={() => setUserType("uploader")}
-                    className={userType === "uploader" ? "search-btn" : "booking-btn"}
-                    style={{ flex: 1 }}
+                    type="button"
+                    onClick={() => setLoginRole("uploader")}
+                    className={loginRole === "uploader" ? "search-btn" : "booking-btn"}
+                    style={{ flex: 1, padding: '10px', fontSize: '14px' }}
                 >
-                    Uploader
+                    Login as Bus Uploader
                 </button>
             </div>
 
-            {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+            {error && (
+                <div style={{ 
+                    backgroundColor: '#fee2e2', 
+                    color: '#dc2626', 
+                    padding: '10px', 
+                    borderRadius: '6px', 
+                    marginBottom: '15px',
+                    fontSize: '14px',
+                    textAlign: 'center'
+                }}>
+                    {error}
+                </div>
+            )}
 
             <form onSubmit={handleLogin}>
                 <div className="input-group" style={{ marginBottom: "15px" }}>
@@ -86,24 +105,17 @@ function LoginForm() {
                 <button 
                     type="submit" 
                     className="search-btn" 
-                    style={{ width: "100%" }}
+                    style={{ width: "100%", padding: '12px' }}
                     disabled={loading}
                 >
-                    {loading ? "Logging in..." : "Login"}
+                    {loading ? "Authenticating..." : `Login as ${loginRole === 'user' ? 'User' : 'Uploader'}`}
                 </button>
             </form>
 
-            <div style={{ marginTop: "20px", textAlign: "center" }}>
+            <div style={{ marginTop: "25px", textAlign: "center" }}>
                 <p style={{ fontSize: "14px", color: "#64748b" }}>
-                    {userType === "user" ? (
-                        <>
-                            Don't have an account? <Link to="/signup">Sign Up</Link>
-                        </>
-                    ) : (
-                        <>
-                            New Bus Uploader? <Link to="/uploader-signup">Sign Up</Link>
-                        </>
-                    )}
+                    Don't have an account? <br/>
+                    <Link to="/signup">Register as User</Link> or <Link to="/uploader-signup">Register as Uploader</Link>
                 </p>
             </div>
         </div>

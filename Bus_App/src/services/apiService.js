@@ -3,7 +3,7 @@
  * This ensures consistent handling of the base URL and authentication tokens.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = '/api';
 
 /**
  * Helper function to create headers with the JWT token if available.

@@ -2,19 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../BusList.css';
 import { apiService } from '../services/apiService';
+import { useAuth } from '../context/AuthContext';
 
 const BusList = () => {
     const [buses, setBuses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+    const { role } = useAuth();
 
     useEffect(() => {
         const fetchBusesData = async () => {
+            console.log("Fetching buses...");
             try {
                 const data = await apiService.getAllBuses();
+                console.log("Fetched buses count:", data.length);
                 setBuses(data);
             } catch (err) {
+                console.error("Error fetching buses:", err);
                 setError(err.message);
             } finally {
                 setLoading(false);
@@ -23,13 +28,28 @@ const BusList = () => {
         fetchBusesData();
     }, []);
 
+    const handleDelete = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this bus?")) return;
+        
+        try {
+            await apiService.deleteBus(id);
+            alert("Bus deleted successfully");
+            setBuses(buses.filter(bus => (bus._id || bus.id) !== id));
+        } catch (err) {
+            console.error("Delete failed:", err);
+            alert("Failed to delete bus: " + err.message);
+        }
+    };
+
     return (
         <div className="bus-list-container">
             <div className="list-header">
-                <h2>Available Buses</h2>
-                <button className="add-new-btn" onClick={() => navigate('/add-bus')}>
-                    + Add New Bus
-                </button>
+                <h2>{role === 'busUploader' ? "Your Fleet" : "Available Buses"}</h2>
+                {role === 'busUploader' && (
+                    <button className="add-new-btn" onClick={() => navigate('/uploader')}>
+                        + Add New Bus
+                    </button>
+                )}
             </div>
 
             {loading && <p>Loading buses...</p>}
@@ -38,7 +58,9 @@ const BusList = () => {
             {!loading && !error && buses.length === 0 ? (
                 <div className="no-buses">
                     <p>No buses added yet.</p>
-                    <button onClick={() => navigate('/add-bus')}>Start by adding a bus</button>
+                    {role === 'busUploader' && (
+                         <button onClick={() => navigate('/uploader')}>Start by adding a bus</button>
+                    )}
                 </div>
             ) : (
                 <div className="bus-grid">
@@ -73,16 +95,38 @@ const BusList = () => {
                                 </div>
 
                                 <div className="extra-info">
-                                    <span>💺 {bus.seaterSeats + bus.sleeperSeats} Seats</span>
+                                    <span>💺 {Number(bus.seaterSeats || 0) + Number(bus.sleeperSeats || 0)} Seats</span>
                                     <span className="price">₹{bus.ticketPrice}</span>
                                 </div>
 
-                                <button 
-                                    className="book-btn"
-                                    onClick={() => navigate('/seat-booking', { state: { bus } })}
-                                >
-                                    Book Now
-                                </button>
+                                <div className="action-buttons" style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                                    {role === 'busUploader' ? (
+                                        <>
+                                            <button 
+                                                className="edit-btn" 
+                                                style={{ flex: 1, padding: '10px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                                                onClick={() => alert("Edit functionality coming soon")}
+                                            >
+                                                Edit
+                                            </button>
+                                            <button 
+                                                className="delete-btn" 
+                                                style={{ flex: 1, padding: '10px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                                                onClick={() => handleDelete(bus._id || bus.id)}
+                                            >
+                                                Delete
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <button 
+                                            className="book-btn"
+                                            style={{ width: '100%' }}
+                                            onClick={() => navigate('/seat-booking', { state: { bus } })}
+                                        >
+                                            Book Now
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     ))}

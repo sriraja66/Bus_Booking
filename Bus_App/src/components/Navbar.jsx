@@ -1,15 +1,13 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
-  const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : null;
+  const { user, isAuthenticated, logout, role } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    logout();
     alert("Logged out successfully!");
     navigate('/login');
   };
@@ -31,16 +29,28 @@ function Navbar() {
       </Link>
 
       <div className="nav-links" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-        <Link to="/buses" style={{ textDecoration: 'none', color: '#4b5563', fontWeight: '600' }}>Search Buses</Link>
         
-        {token ? (
+        {isAuthenticated ? (
           <>
-            {user?.role === 'uploader' && (
-              <Link to="/add-bus" style={{ textDecoration: 'none', color: '#059669', fontWeight: '600' }}>+ Add Bus</Link>
+            {/* User Links */}
+            {role === 'user' && (
+              <>
+                <Link to="/dashboard" style={{ textDecoration: 'none', color: '#4b5563', fontWeight: '600' }}>Search Buses</Link>
+                <Link to="/my-bookings" style={{ textDecoration: 'none', color: '#4b5563', fontWeight: '600' }}>My Bookings</Link>
+              </>
             )}
-            <Link to="/my-bookings" style={{ textDecoration: 'none', color: '#4b5563', fontWeight: '600' }}>My Bookings</Link>
+
+            {/* Uploader Links */}
+            {role === 'busUploader' && (
+              <>
+                <Link to="/uploader/dashboard" style={{ textDecoration: 'none', color: '#4b5563', fontWeight: '600' }}>Dashboard</Link>
+                <Link to="/uploader/add-bus" style={{ textDecoration: 'none', color: '#059669', fontWeight: '600' }}>+ Add Bus</Link>
+                <Link to="/uploader/buses" style={{ textDecoration: 'none', color: '#4b5563', fontWeight: '600' }}>My Buses</Link>
+              </>
+            )}
+
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '10px' }}>
-              <span style={{ fontSize: '14px', color: '#6b7280' }}>Hi, <strong>{user?.username}</strong></span>
+              <span style={{ fontSize: '14px', color: '#6b7280' }}>Hi, <strong>{user?.username}</strong> </span>
               <button 
                 onClick={handleLogout}
                 style={{ 
@@ -80,4 +90,3 @@ function Navbar() {
 }
 
 export default Navbar;
-

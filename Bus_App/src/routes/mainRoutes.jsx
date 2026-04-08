@@ -1,8 +1,7 @@
 import React from "react";
+import { Navigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
-import Header from "../components/Header";
-import SearchBox from "../components/Search";
-import Features from "../components/Features";
+import Dashboard from "../pages/Dashboard";
 import LoginPage from "../pages/LoginPage";
 import SignUpPage from "../pages/SignUpPage";
 import UploaderSignUpPage from "../pages/UploaderSignUpPage";
@@ -12,6 +11,7 @@ import SeatBookingPage from "../pages/SeatBookingPage";
 import SearchResults from "../pages/SearchResults";
 import MyBookings from "../pages/MyBookings";
 import NotFound from "../pages/NotFound";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 const mainRoutes = {
   path: "/",
@@ -19,13 +19,7 @@ const mainRoutes = {
   children: [
     {
       index: true,
-      element: (
-        <>
-          <Header />
-          <SearchBox />
-          <Features />
-        </>
-      ),
+      element: <Navigate to="/dashboard" replace />,
     },
     {
       path: "login",
@@ -39,25 +33,79 @@ const mainRoutes = {
       path: "uploader-signup",
       element: <UploaderSignUpPage />,
     },
+    
+    // --- USER ROUTES ---
     {
-      path: "add-bus",
-      element: <AddBus />,
-    },
-    {
-      path: "buses",
-      element: <BusList />,
-    },
-    {
-      path: "seat-booking",
-      element: <SeatBookingPage />,
-    },
-    {
-      path: "search-results",
-      element: <SearchResults />,
+      path: "dashboard",
+      element: (
+        <ProtectedRoute allowedRoles={["user", "busUploader"]}>
+          <Dashboard />
+        </ProtectedRoute>
+      ),
     },
     {
       path: "my-bookings",
-      element: <MyBookings />,
+      element: (
+        <ProtectedRoute allowedRoles={["user"]}>
+          <MyBookings />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "search-results",
+      element: (
+        <ProtectedRoute allowedRoles={["user"]}>
+          <SearchResults />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "seat-booking",
+      element: (
+        <ProtectedRoute allowedRoles={["user"]}>
+          <SeatBookingPage />
+        </ProtectedRoute>
+      ),
+    },
+
+    // --- UPLOADER ROUTES ---
+    {
+      path: "uploader/dashboard",
+      element: (
+        <ProtectedRoute allowedRoles={["busUploader"]}>
+          <Dashboard />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "uploader/add-bus",
+      element: (
+        <ProtectedRoute allowedRoles={["busUploader"]}>
+          <AddBus />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "uploader/buses",
+      element: (
+        <ProtectedRoute allowedRoles={["busUploader"]}>
+          <BusList />
+        </ProtectedRoute>
+      ),
+    },
+
+    // --- REDIRECTS & FALLBACKS ---
+    {
+      path: "uploader",
+      element: <Navigate to="/uploader/dashboard" replace />,
+    },
+    {
+      path: "add-bus",
+      element: <Navigate to="/uploader/add-bus" replace />,
+    },
+    {
+      path: "buses",
+      element: <Navigate to="/uploader/buses" replace />,
     },
     {
       path: "*",
