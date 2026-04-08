@@ -11,6 +11,7 @@ import BusList from "../pages/BusList";
 import SeatBookingPage from "../pages/SeatBookingPage";
 import SearchResults from "../pages/SearchResults";
 import MyBookings from "../pages/MyBookings";
+import NotFound from "../pages/NotFound";
 
 const mainRoutes = {
   path: "/",
@@ -57,6 +58,10 @@ const mainRoutes = {
     {
       path: "my-bookings",
       element: <MyBookings />,
+    },
+    {
+      path: "*",
+      element: <NotFound />,
     },
   ],
 };
